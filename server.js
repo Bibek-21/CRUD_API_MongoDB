@@ -11,8 +11,8 @@ const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 
 
-
 app.use('/',route)
+
 
 const port = process.env.PORT;
 

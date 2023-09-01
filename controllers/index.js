@@ -5,9 +5,10 @@ const Students = db.students;
 //create and save a new students
 exports.createStudents = (req, res) => {
 
-    if (!FirstName || !LastName || CRN || DOB || Guardian) {
+    if (!FirstName || !LastName || !CRN || !DOB || !Guardian) {
         res.status(400).send("Please submit the valid Details")
         return;
+        
     }
 
 
