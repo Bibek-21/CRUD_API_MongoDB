@@ -1,6 +1,5 @@
 module.exports = mongoose => {
-    const Students = mongoose.model(
-        "students",
+    let schema = 
         mongoose.Schema(
             {
                 FirstName: String,
@@ -11,12 +10,17 @@ module.exports = mongoose => {
                 Guardian: String,
                 Address:String,
                 IsDeleted: Boolean,
-
-
             },
             { timestamps: true }
         )
-    );
-
-    return Students;
+    ;
+    schema.method("toJSON", function() {
+        const { __v, _id, ...object } = this.toObject();
+        object.id = _id;
+        return object;
+      });
+    
+      const Students = mongoose.model("Students", schema);
+      return Students;
+    
 };
