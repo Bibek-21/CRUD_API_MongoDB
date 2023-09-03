@@ -10,10 +10,11 @@ const app = express();
 
 app.use(bodyParser.urlencoded({extended: true}));
 
+app.use(express.json())
 
 
-app.use('/',route)
-
+// app.use('/',route)
+route(app)
 const port = process.env.PORT;
 
 app.listen(port, async () => {

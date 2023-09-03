@@ -16,17 +16,17 @@ module.exports = (app) => {
 
 
 
-  // Retrieve a single Student with id
-  router.get("/findstudents/:id", students.findById);
+  // Retrieve a single Student with CRN
+  router.get("/findstudentbyid/:id", students.findById);
 
   // Update a Student with id
   router.put("/updatestudent/:id", students.updateStudents);
 
-  // // Delete a Student with id
-  // router.delete("/:id", students.delete);
+  // Delete a Student with id [soft Delete students that is set the isDelete to 0]
+  router.delete("/deletestudents/:id", students.softDeleteStudents);
 
-  // // Create a new Student
-  // router.delete("/", students.deleteAll);
+  // Create a new Student
+  router.delete("/harddeletestudent/:id", students.hardDeleteStudents);
 
   app.use("/api/students", router);
 };
