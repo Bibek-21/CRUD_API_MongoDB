@@ -5,14 +5,12 @@ const StudentsModel = db.students;
 exports.createStudents = (req, res) => {
 
 
-
-
   //create a students object  these values are get by postman
   const students = {
     FirstName: req.body.FirstName,
     LastName: req.body.LastName,
     CRN: req.body.CRN,
-    Contact: req.body.Contact ? req.body.Contact : "98XXXXX",
+    Contact: req.body.Contact ? req.body.Contact : "9810000000",
     DOB: req.body.DOB,
     Guardian: req.body.Guardian,
     Address: req.body.Address,
@@ -105,6 +103,8 @@ exports.updateStudents = async (req, res) => {
           message: `Data successfully updatedf for id =${stId}`,
         });
       })
+    
+  
 
       .catch((err) => {
         res
