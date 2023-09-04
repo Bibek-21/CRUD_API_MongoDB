@@ -1,5 +1,6 @@
 const db = require("../models");
 const StudentsModel = db.students;
+const redisClient = require("../models/redis")
 
 //create and save a new students
 exports.createStudents = (req, res) => {
@@ -168,4 +169,29 @@ res.send({message:`The student data is deleted with id: ${stId}`})
     })
 
    })
+}
+
+
+exports.cache = (req,res,next)=>{
+const key = "__FirstName__"||req.url;
+
+redisClient.get(key)
+.then(data=>{
+  if(data){  
+    res.send(JSON.parse(data))
+}
+  else{
+res.sendResponse = res.send;
+res.send= (body)=>{
+  redisClient.set(key,JSON.stringify(body),{'EX':60})
+res.sendResponse(body);
+next();
+}
+
+  }
+})
+
+.catch(err=>{
+  console.log(err);
+})
 }

@@ -1,7 +1,7 @@
 var router = require("express").Router();
-
+const students = require("../controllers/");
+const redisClient= require("../models/redis")
 module.exports = (app) => {
-  const students = require("../controllers/");
 
 
   router.get("/home", (req,res) => {
