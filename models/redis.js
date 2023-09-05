@@ -21,7 +21,7 @@ module.exports = {
         })
     },
     setValues: async (key, value)=> {
-        let result = await redisClient.set(key, value)
+        let result = await redisClient.set(key, value, "EX", 60)
         console.log(result)
         return true
     },
@@ -29,21 +29,15 @@ module.exports = {
     getValues: async(key)=>{
         let result = await redisClient.get(key)
         return result
+    },
+    delValues: async(key)=>{
+        let result= await redisClient.del(key);
+        return result;
     }
 }
 
 
 
 
-// try {
-//     redisClient.getAsync= promisify(redisClient.get).bind(redisClient)
-//     redisClient.setAsync= promisify(redisClient.set).bind(redisClient)
-
-
-
-// } catch (error) {
-//     console.log(`Redis error: ${error}`);
-// }
 
 global.Cache= redisClient;
-// module.exports = redisClient;

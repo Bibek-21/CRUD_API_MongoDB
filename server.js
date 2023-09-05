@@ -15,13 +15,13 @@ const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(express.json())
-app.use(cache)
+// app.use(cache)
 
 // app.use('/',route)
 route(app)
 const port = process.env.PORT;
 redisClient.redisInit()
-redisClient.setValues("jpt","test")
+// redisClient.setValues("jpt","test")
 
 app.listen(port, async () => {
 db.mongoose

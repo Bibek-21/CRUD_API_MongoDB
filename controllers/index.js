@@ -60,10 +60,34 @@ exports.findAllStudents = (req, res) => {
 };
 
 //find students by id in req params Example:localhost:3000/api/students/id
+//it checks if the data is in cache or not
+
+const findFunction = async (id) => {
+
+  const cachedData = await redisClient.getValues(`student:${id}`);
+  if (cachedData) {
+    console.log("The data found in Cache")
+    return JSON.parse(cachedData)
+
+  }
+  else {
+    const mongoData = await StudentsModel.findById(id)
+
+
+    if (mongoData) {
+      console.log("The data found in MongoDB")
+      await redisClient.setValues(`student:${id}`, JSON.stringify(mongoData));
+      return mongoData;
+
+    }
+    else { return null }
+
+  }
+};
 
 exports.findById = (req, res) => {
   const id = req.params.id;
-  StudentsModel.findById(id)
+  findFunction(id)
     .then((data) => {
       if (!data)
         res.status(404).send({ message: "Not found Students with id " + id });
@@ -72,16 +96,22 @@ exports.findById = (req, res) => {
     .catch((err) => {
       res
         .status(500)
-        .send({ message: "Error retrieving Students with id=" + id });
+        .send({ message: "Error retrieving Students with id=" + id + err });
     });
 };
 
+const updateCache= async(id)=>{
+   const data = await StudentsModel.findById(id)
+  await redisClient.setValues(`student:${id}`, JSON.stringify(data));
+
+return
+}
 
 
 exports.updateStudents = async (req, res) => {
 
-  const updatevalues= req.body
-  if (Object.values(updatevalues).length==0) {
+  const updatevalues = req.body
+  if (Object.values(updatevalues).length == 0) {
     console.log("No body is  provided");
     res.send({
       message: "Data to update must not be empty",
@@ -89,109 +119,180 @@ exports.updateStudents = async (req, res) => {
     return;
   }
 
-    console.log(updatevalues);
-    let stId = req.params.id;
+  console.log(updatevalues);
+  let stId = req.params.id;
 
    await StudentsModel
-      .findByIdAndUpdate(stId, updatevalues, { useFindAndModify: false })
-      .then((data) => {
-        if (!data) {
-          res.status(404).send({
-            message: `Cannot update STUDENTS with id=${stId}. Maybe Student was not found!`,
-          });
-        }
-        res.status(200).send({
-          message: `Data successfully updatedf for id =${stId}`,
+    .findByIdAndUpdate(stId, updatevalues, { useFindAndModify: false })
+    .then( (data) => {
+      if (!data) {
+        res.status(404).send({
+          message: `Cannot update STUDENTS with id=${stId}. Maybe Student was not found!`,
         });
-      })
+      }
     
-  
+ 
 
-      .catch((err) => {
-        res
-          .status(500)
-          .send({ message: "Error retrieving Students with id=" + stId + err });
+    res.status(200).send({
+        message: `Data successfully updatedf for id =${stId}`,
       });
-  
+
+    })
+
+
+
+    .catch((err) => {
+      res
+        .status(500)
+        .send({ message: "Error retrieving Students with id=" + stId + err });
+    });
+   
+    updateCache(stId)
 };
 
 
+
+
+
+
+// ///temp tala koo
+// exports.updateStudents = async (req, res) => {
+
+//   const updatevalues = req.body
+//   if (Object.values(updatevalues).length == 0) {
+//     console.log("No body is  provided");
+//     res.send({
+//       message: "Data to update must not be empty",
+//     });
+//     return;
+//   }
+
+//   let stId = req.params.id;
+// let doc = await StudentsModel.findById(stId)
+// if(doc){
+// await doc.update(updatevalues)
+// .then( (data) => {
+//   if (!data) {
+//     res.status(404).send({
+//       message: `Cannot update STUDENTS with id=${stId}. Maybe Student was not found!`,
+//     });
+//   }
+
+
+// res.status(200).send({
+//     message: `Data successfully updatedf for id =${stId}`,
+//   });
+
+//   updateCache(stId,data)
+// })
+
+// .catch((err) => {
+//   res
+//     .status(500)
+//     .send({ message: "Error retrieving Students with id=" + stId + err });
+// });}
+
+// else{
+//   console.log("No data Available");
+//   res
+//     .status(500)
+//     .send({ message: "Error retrieving Students with id=" + stId + err });
+
+// }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 //softdelete the students document
-exports.softDeleteStudents= (req,res)=>{
-  const deleteid= req.params.id;
+exports.softDeleteStudents = (req, res) => {
+  const deleteid = req.params.id;
 
-if(!deleteid){
-  res.send({
-    message:"Data to be deleted is required"
-  })
-}
-const update={IsDeleted:true}
-StudentsModel
-.findByIdAndUpdate(deleteid, update, { useFindAndModify: false })
-.then((data) => {
-  if (!data) {
-    res.status(404).send({
-      message: `Cannot update(delete) STUDENTS with id=${deleteid}. Maybe Student was not found!`,
-    });
-  }
-  res.status(200).send({
-    message: `Data successfully updated(delete) for id =${deleteid}`,
-  });
-})
-
-.catch((err) => {
-  res
-    .status(500)
-    .send({ message: "Error retrieving Students with id=" + stId + err });
-});
-}
-
-
-exports.hardDeleteStudents= async(req,res)=>{
-console.log("errrrrrrrrrrrrrrrrrrrrrrrrrrrr");
-   stId= req.params.id;
-
-   await StudentsModel.findByIdAndRemove(stId,{useFindAndModify:false}) 
-   .then(data=>{
-    if(!data){
-      res.send({
-        message:`Could not delete the data`
-      })
-      return
-    }
-res.send({message:`The student data is deleted with id: ${stId}`})
-
-   })
-
-   .catch(err=>{
+  if (!deleteid) {
     res.send({
-      message:`There is an error ${err}`
+      message: "Data to be deleted is required"
+    })
+  }
+  const update = { IsDeleted: true }
+  StudentsModel
+    .findByIdAndUpdate(deleteid, update, { useFindAndModify: false })
+    .then((data) => {
+      if (!data) {
+        res.status(404).send({
+          message: `Cannot update(delete) STUDENTS with id=${deleteid}. Maybe Student was not found!`,
+        });
+      }
+      res.status(200).send({
+        message: `Data successfully updated(delete) for id =${deleteid}`,
+      });
     })
 
-   })
-}
+    .catch((err) => {
+      res
+        .status(500)
+        .send({ message: "Error retrieving Students with id=" + stId + err });
+    });
 
 
-exports.cache = (req,res,next)=>{
-const key = "__FirstName__"||req.url;
+}
 
-redisClient.get(key)
-.then(data=>{
-  if(data){  
-    res.send(JSON.parse(data))
+//DeleteBothDatabase it deletes data from both cache and mongoDB
+const DeleteFromCache = async (stId) => {
+  let delCache;
+  const cachedData = await redisClient.getValues(`student:${stId}`);
+  
+  if (cachedData) {
+    delCache = await redisClient.delValues(`student:${stId}`);
+    if (delCache) {
+return true   
+ }
+    else {
+return false    }
+  }
+  
 }
-  else{
-res.sendResponse = res.send;
-res.send= (body)=>{
-  redisClient.set(key,JSON.stringify(body),{'EX':60})
-res.sendResponse(body);
-next();
-}
+
+exports.hardDeleteStudents = async (req, res) => {
+  stId = req.params.id;
+  const del= await DeleteFromCache(stId);
+  if(del){
+    console.log("Deleted from cache");
 
   }
-})
+  else{
+    console.log("Could not Delete from cache");
 
-.catch(err=>{
-  console.log(err);
-})
+  }
+
+  await StudentsModel.findByIdAndRemove(stId, { useFindAndModify: false })
+    .then(data => {
+      if (!data) {
+        res.send({
+          message: `Could not delete the data`
+        })
+        return
+      }
+      res.send({ message: `The student data is deleted with id: ${stId}` })
+
+    })
+
+    .catch(err => {
+      res.send({
+        message: `There is an error ${err}`
+      })
+
+    })
 }
+
+
+
+
