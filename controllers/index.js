@@ -64,6 +64,7 @@ exports.findAllStudents = (req, res) => {
 
 const findFunction = async (id) => {
 
+  // const cachedData = await redisClient.getValues(`student:${id}`);
   const cachedData = await redisClient.getValues(`student:${id}`);
   if (cachedData) {
     console.log("The data found in Cache")
@@ -76,7 +77,9 @@ const findFunction = async (id) => {
 
     if (mongoData) {
       console.log("The data found in MongoDB")
+      // await redisClient.setValues(`student:${id}`, JSON.stringify(mongoData));
       await redisClient.setValues(`student:${id}`, JSON.stringify(mongoData));
+
       return mongoData;
 
     }
@@ -102,6 +105,7 @@ exports.findById = (req, res) => {
 
 const updateCache= async(id)=>{
    const data = await StudentsModel.findById(id)
+  // await redisClient.setValues(`student:${id}`, JSON.stringify(data));
   await redisClient.setValues(`student:${id}`, JSON.stringify(data));
 
 return

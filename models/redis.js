@@ -21,13 +21,17 @@ module.exports = {
         })
     },
     setValues: async (key, value)=> {
-        let result = await redisClient.set(key, value, "EX", 60)
+        // let result = await redisClient.set(key, value, "EX", 60)
+        let result = await client.sendCommand(['SET', key, value, EX,'60']); // 'OK'
+
         console.log(result)
         return true
     },
 
     getValues: async(key)=>{
-        let result = await redisClient.get(key)
+        // let result = await redisClient.get(key)
+        let result = await client.sendCommand(['GET', key]); // 'OK'
+
         return result
     },
     delValues: async(key)=>{
